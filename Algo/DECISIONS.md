@@ -20,3 +20,23 @@ Producing and bounding the `1..N` range is the caller's responsibility.
   Keeping it out of the engine preserves reusability and keeps `evaluate` a pure, side-effect-free function.
 - Validation of N, if ever required, belongs where N enters the system but not in this engine.
 - The behavior is pinned by tests (`0`, `-1`, `-3`, `-5`, `-15`), so the choice is explicit rather than accidental.
+
+## 2. A rule engine instead of a conditional chain
+
+**Context:** The naive solution is an `if/else` chain.
+It works, but the brief scores *scalability* and asks the candidate to justify their choices.
+A conditional chain forces a code edit on every new rule and bakes the priority order into control flow.
+
+**Decision:** The transformation is expressed as composable `Rule` objects resolved by a `RuleCollection`:
+- `Rule` requires `matches(int $n): bool` and a readable `string $label` property.
+- `DivisibleBy` is the only concrete rule needed for FizzBuzz.
+- `FizzBuzz::evaluate` delegates to `RuleCollection::matchFirst`, returning the matched rule's
+  `label` or `(string) $n` when nothing matches (no divisibility branching of its own).
+
+**Rationale:**
+- Open/closed: a new rule is a new class plus one line of wiring, never an edit to the engine.
+- Priority becomes data from injection order, not control flow (see the upcoming priority test).
+- The variadic `Rule ...$rules` constructor gives compile-time-checked, robustly typed wiring.
+- `label` is intrinsic state with no argument, so the interface requires it as a property rather than a getter.
+  `DivisibleBy` satisfies it with a promoted `readonly` property, so the contract holds without a getter or a phpdoc.
+  `matches(int $n)` stays a method because it takes an argument, so the asymmetry is intentional.
