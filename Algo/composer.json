@@ -1,0 +1,38 @@
+{
+    "name": "fulll/algo-fizzbuzz",
+    "description": "FizzBuzz rule engine - Fulll technical test, exercise 1",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fulll\\Algo\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Fulll\\Algo\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "phpstan": "phpstan analyse",
+        "cs-fix": "php-cs-fixer fix",
+        "cs-check": "php-cs-fixer fix --dry-run --diff",
+        "quality": [
+            "@cs-check",
+            "@phpstan",
+            "@test"
+        ]
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.2",
+        "phpunit/phpunit": "^13.2"
+    }
+}
