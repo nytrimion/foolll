@@ -21,6 +21,8 @@ final class FizzBuzzTest extends TestCase
         $fizz = new DivisibleBy(3, 'Fizz');
         $buzz = new DivisibleBy(5, 'Buzz');
 
+        // Order carries priority: matchFirst returns the first match, so the
+        // most specific rule (the FizzBuzz composite) must come first.
         $this->sut = new FizzBuzz(new RuleCollection(
             new MatchEvery(new RuleCollection($fizz, $buzz), 'FizzBuzz'),
             $fizz,
