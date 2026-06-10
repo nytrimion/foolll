@@ -17,6 +17,7 @@
         }
     },
     "scripts": {
+        "fizzbuzz": "@php bin/fizzbuzz.php",
         "test": "phpunit",
         "phpstan": "phpstan analyse",
         "cs-fix": "php-cs-fixer fix",
