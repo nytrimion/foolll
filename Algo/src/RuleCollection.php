@@ -21,4 +21,12 @@ final readonly class RuleCollection
             static fn (Rule $rule): bool => $rule->matches($n),
         );
     }
+
+    public function matchEvery(int $n): bool
+    {
+        return array_all(
+            $this->rules,
+            static fn (Rule $rule): bool => $rule->matches($n),
+        );
+    }
 }

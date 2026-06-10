@@ -40,3 +40,23 @@ A conditional chain forces a code edit on every new rule and bakes the priority 
 - `label` is intrinsic state with no argument, so the interface requires it as a property rather than a getter.
   `DivisibleBy` satisfies it with a promoted `readonly` property, so the contract holds without a getter or a phpdoc.
   `matches(int $n)` stays a method because it takes an argument, so the asymmetry is intentional.
+
+## 3. FizzBuzz is a composite rule carrying an explicit label
+
+**Context:** `15` must yield `FizzBuzz`.
+The step-2 wiring used `DivisibleBy(15)`, which is correct only because divisibility by 15 happens
+to coincide with "divisible by 3 *and* 5". That coincidence does not generalise: a composite such as
+"prime *and* even" has no single equivalent divisor.
+
+**Decision:** "matches when every sub-rule matches" is modelled as `MatchEvery`, a `Rule` that composes
+a `RuleCollection` and carries an explicit `string $label`. `RuleCollection::matchEvery` (`array_all`)
+provides the traversal; `MatchEvery::matches` delegates to it. The FizzBuzz rule is a
+`MatchEvery` of the Fizz and Buzz rules, wired first.
+
+**Rationale:**
+- The label is explicit, never derived by concatenating sub-rule labels. `'Fizz' . 'Buzz' === 'FizzBuzz'`
+  is a coincidence; presuming it would couple the composite to its current members and break the moment
+  a label changes or a third rule joins. A label must not presume future behaviour.
+- `MatchEvery` reuses the very Fizz and Buzz instances the engine already holds — composition, not duplication.
+- `matchEvery` mirrors `matchFirst`: both keep rule traversal inside the collection and express intent
+  declaratively (`array_all` / `array_find`), rather than scattering loops across rules.
