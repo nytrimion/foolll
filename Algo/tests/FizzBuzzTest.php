@@ -6,6 +6,7 @@ namespace Fulll\Algo\Tests;
 
 use Fulll\Algo\DivisibleBy;
 use Fulll\Algo\FizzBuzz;
+use Fulll\Algo\MatchEvery;
 use Fulll\Algo\RuleCollection;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,10 +18,13 @@ final class FizzBuzzTest extends TestCase
 
     protected function setUp(): void
     {
+        $fizz = new DivisibleBy(3, 'Fizz');
+        $buzz = new DivisibleBy(5, 'Buzz');
+
         $this->sut = new FizzBuzz(new RuleCollection(
-            new DivisibleBy(15, 'FizzBuzz'),
-            new DivisibleBy(3, 'Fizz'),
-            new DivisibleBy(5, 'Buzz'),
+            new MatchEvery(new RuleCollection($fizz, $buzz), 'FizzBuzz'),
+            $fizz,
+            $buzz,
         ));
     }
 
