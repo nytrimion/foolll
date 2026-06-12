@@ -3,10 +3,9 @@
 
 declare(strict_types=1);
 
-use Symfony\Component\Console\Application;
+use Fulll\Infra\Console\FleetConsole;
+use Fulll\Infra\InMemory\InMemoryFleetRepository;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$application = new Application('fleet');
-
-$application->run();
+FleetConsole::application(new InMemoryFleetRepository())->run();

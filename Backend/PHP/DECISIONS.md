@@ -80,3 +80,20 @@ The "same location twice" guard is intrinsic to one `Vehicle`. So it lives on th
 There is no fleet-level position invariant, so no second aggregate: a plate registered in two fleets keeps two independent `Vehicle` entities.
 The location is "the last position known by that fleet", not a global physical truth.
 Promoting `Vehicle` to its own root would add a second aggregate and repository for a consistency the spec never exercises.
+
+## 10. The CLI is a thin Symfony Console adapter
+
+**Context:** Step 2 exposes the use cases through `./fleet create|register-vehicle|localize-vehicle`.
+The domain and App layers must not change, only an adapter is added.
+
+**Decision:** Each CLI command is a `Symfony\Component\Console\Command` in `Infra/Console` that converts arguments
+into value objects, news the matching App handler directly (no container, per #7), and maps a thrown exception to
+a non-zero exit code.
+Classes are prefixed `Fleet*` after the `fleet` binary, which also disambiguates them from
+the App `*Command` DTOs without aliased imports.
+`FleetConsole::application()` is the composition root shared by `bin/fleet` and the feature tests, so the tests
+drive the same wiring the binary ships.
+`create` mints a `Uuid::v7()` at the edge into a `FleetId` (per #5) and prints it bare for scripting.
+Using a direct call rather than an injectable generator avoids a test-only abstraction.
+The in-memory binding stays for now and is swapped for PostgreSQL without touching the command classes, until
+then `bin/fleet` does not persist across separate process invocations.
