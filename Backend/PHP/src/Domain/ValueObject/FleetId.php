@@ -12,9 +12,4 @@ final readonly class FleetId
             throw new \DomainException('A fleet id cannot be empty.');
         }
     }
-
-    public function equals(self $other): bool
-    {
-        return $this->value === $other->value;
-    }
 }

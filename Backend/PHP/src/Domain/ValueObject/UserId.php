@@ -12,9 +12,4 @@ final readonly class UserId
             throw new \DomainException('A user id cannot be empty.');
         }
     }
-
-    public function equals(self $other): bool
-    {
-        return $this->value === $other->value;
-    }
 }

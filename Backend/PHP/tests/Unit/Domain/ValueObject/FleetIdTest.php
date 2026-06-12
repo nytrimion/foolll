@@ -15,12 +15,4 @@ final class FleetIdTest extends TestCase
 
         new FleetId('   ');
     }
-
-    public function testIsEqualToAnotherIdWithSameValue(): void
-    {
-        $fleetId = new FleetId('fleet-1');
-
-        self::assertTrue($fleetId->equals(new FleetId('fleet-1')));
-        self::assertFalse($fleetId->equals(new FleetId('fleet-2')));
-    }
 }
