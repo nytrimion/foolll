@@ -15,12 +15,4 @@ final class UserIdTest extends TestCase
 
         new UserId('   ');
     }
-
-    public function testIsEqualToAnotherIdWithSameValue(): void
-    {
-        $userId = new UserId('user-1');
-
-        self::assertTrue($userId->equals(new UserId('user-1')));
-        self::assertFalse($userId->equals(new UserId('user-2')));
-    }
 }

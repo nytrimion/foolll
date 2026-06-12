@@ -12,9 +12,4 @@ final readonly class PlateNumber
             throw new \DomainException('A plate number cannot be empty.');
         }
     }
-
-    public function equals(self $other): bool
-    {
-        return $this->value === $other->value;
-    }
 }

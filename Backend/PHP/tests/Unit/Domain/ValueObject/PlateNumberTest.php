@@ -15,12 +15,4 @@ final class PlateNumberTest extends TestCase
 
         new PlateNumber('   ');
     }
-
-    public function testIsEqualToAnotherPlateWithSameValue(): void
-    {
-        $plateNumber = new PlateNumber('AB-123-CD');
-
-        self::assertTrue($plateNumber->equals(new PlateNumber('AB-123-CD')));
-        self::assertFalse($plateNumber->equals(new PlateNumber('XY-999-ZZ')));
-    }
 }
