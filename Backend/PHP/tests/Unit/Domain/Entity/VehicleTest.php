@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fulll\Tests\Unit\Domain\Entity;
 
 use Fulll\Domain\Entity\Vehicle;
+use Fulll\Domain\Exception\VehicleAlreadyParkedException;
 use Fulll\Domain\ValueObject\Location;
 use Fulll\Domain\ValueObject\PlateNumber;
 use PHPUnit\Framework\TestCase;
@@ -37,5 +38,15 @@ final class VehicleTest extends TestCase
         $vehicle->localize($newLocation);
 
         self::assertSame($newLocation, $vehicle->location);
+    }
+
+    public function testFailsWhenLocalizedTwiceAtSameLocation(): void
+    {
+        $vehicle = new Vehicle(new PlateNumber('AB-123-CD'));
+        $vehicle->localize(new Location(48.85, 2.35));
+
+        $this->expectException(VehicleAlreadyParkedException::class);
+
+        $vehicle->localize(new Location(48.85, 2.35));
     }
 }

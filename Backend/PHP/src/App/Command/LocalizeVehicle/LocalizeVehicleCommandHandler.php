@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fulll\App\Command\LocalizeVehicle;
 
 use Fulll\Domain\Exception\FleetNotFoundException;
+use Fulll\Domain\Exception\VehicleAlreadyParkedException;
 use Fulll\Domain\Exception\VehicleNotRegisteredException;
 use Fulll\Domain\Repository\FleetRepository;
 
@@ -17,6 +18,7 @@ final readonly class LocalizeVehicleCommandHandler
     /**
      * @throws FleetNotFoundException
      * @throws VehicleNotRegisteredException
+     * @throws VehicleAlreadyParkedException
      */
     public function handle(LocalizeVehicleCommand $command): void
     {

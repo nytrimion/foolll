@@ -39,7 +39,7 @@ Adopted from the start for homogeneity, and to encode each component's role in t
 
 **Context:** UUIDs are minted by the application/infrastructure, and their unpredictability is not a domain concern.
 
-**Decision:** `FleetId`, `PlateNumber` and `UserId` wrap a non-empty string with equality.
+**Decision:** `FleetId`, `PlateNumber` and `UserId` wrap a non-empty string.
 No UUID coupling, no `::generate()`.
 An empty value throws `\DomainException` (a value outside the valid domain, not a generic argument error).
 The UUID v7 is generated at the CLI edge in step 2.
@@ -67,3 +67,16 @@ the CLI and the Behat context.
 Command handlers use mocks asserting the side effect (`save` once, or never on the error path).
 Query handlers use stubs and assert the returned value.
 The in-memory repository keeps its own test, since the fake must be trustworthy.
+
+## 9. A vehicle's location is fleet-local, only latitude and longitude define equality
+
+**Context:** A vehicle can belong to several fleets, and the only positioning rule is "not the same location twice in a row".
+`Location` carries an optional altitude, but the spec only ever compares a position to detect that repetition.
+
+**Decision:** `Location` holds `latitude`, `longitude` and an optional `altitude`.
+Equality compares latitude and longitude only.
+Altitude is informative, and comparing it would be an arbitrary, use-case-specific rule the spec does not ask for.
+The "same location twice" guard is intrinsic to one `Vehicle`. So it lives on the entity (`Vehicle::localize`), reached through `Fleet::localize`.
+There is no fleet-level position invariant, so no second aggregate: a plate registered in two fleets keeps two independent `Vehicle` entities.
+The location is "the last position known by that fleet", not a global physical truth.
+Promoting `Vehicle` to its own root would add a second aggregate and repository for a consistency the spec never exercises.
