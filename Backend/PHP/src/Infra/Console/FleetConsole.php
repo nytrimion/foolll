@@ -15,6 +15,7 @@ final class FleetConsole
 
         $application->addCommands([
             new FleetCreateCommand($fleetRepository),
+            new FleetRegisterVehicleCommand($fleetRepository),
         ]);
 
         return $application;
