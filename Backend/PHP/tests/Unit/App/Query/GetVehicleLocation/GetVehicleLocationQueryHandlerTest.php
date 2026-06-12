@@ -2,52 +2,59 @@
 
 declare(strict_types=1);
 
-namespace Fulll\Tests\Unit\App\Query\IsVehicleRegistered;
+namespace Fulll\Tests\Unit\App\Query\GetVehicleLocation;
 
-use Fulll\App\Query\IsVehicleRegistered\IsVehicleRegisteredQuery;
-use Fulll\App\Query\IsVehicleRegistered\IsVehicleRegisteredQueryHandler;
+use Fulll\App\Query\GetVehicleLocation\GetVehicleLocationQuery;
+use Fulll\App\Query\GetVehicleLocation\GetVehicleLocationQueryHandler;
 use Fulll\Domain\Aggregate\Fleet;
 use Fulll\Domain\Exception\FleetNotFoundException;
+use Fulll\Domain\Exception\VehicleNotRegisteredException;
 use Fulll\Domain\Repository\FleetRepository;
 use Fulll\Domain\ValueObject\FleetId;
+use Fulll\Domain\ValueObject\Location;
 use Fulll\Domain\ValueObject\PlateNumber;
 use Fulll\Domain\ValueObject\UserId;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
-final class IsVehicleRegisteredQueryHandlerTest extends TestCase
+final class GetVehicleLocationQueryHandlerTest extends TestCase
 {
     private FleetRepository&Stub $fleetRepository;
-    private IsVehicleRegisteredQueryHandler $sut;
+    private GetVehicleLocationQueryHandler $sut;
 
-    protected function setUp(): void
+    public function setUp(): void
     {
         $this->fleetRepository = self::createStub(FleetRepository::class);
-        $this->sut = new IsVehicleRegisteredQueryHandler($this->fleetRepository);
+        $this->sut = new GetVehicleLocationQueryHandler($this->fleetRepository);
     }
 
-    public function testReturnsTrueWhenVehicleIsRegistered(): void
+    public function testReturnsVehicleLocation(): void
     {
         $fleetId = new FleetId('fleet-1');
         $plateNumber = new PlateNumber('AB-123-CD');
+        $location = new Location(48.85, 2.35);
         $fleet = new Fleet($fleetId, new UserId('user-1'));
         $fleet->register($plateNumber);
+        $fleet->localize($plateNumber, $location);
 
         $this->fleetRepository->method('find')->willReturn($fleet);
 
-        self::assertTrue($this->sut->handle(new IsVehicleRegisteredQuery($fleetId, $plateNumber)));
+        self::assertSame(
+            $location,
+            $this->sut->handle(new GetVehicleLocationQuery($fleetId, $plateNumber)),
+        );
     }
 
-    public function testReturnsFalseWhenVehicleIsNotRegistered(): void
+    public function testFailsWhenVehicleIsUnregistered(): void
     {
         $fleetId = new FleetId('fleet-1');
         $fleet = new Fleet($fleetId, new UserId('user-1'));
 
         $this->fleetRepository->method('find')->willReturn($fleet);
 
-        self::assertFalse(
-            $this->sut->handle(new IsVehicleRegisteredQuery($fleetId, new PlateNumber('AB-123-CD'))),
-        );
+        $this->expectException(VehicleNotRegisteredException::class);
+
+        $this->sut->handle(new GetVehicleLocationQuery($fleetId, new PlateNumber('AB-123-CD')));
     }
 
     public function testFailsWhenFleetDoesNotExist(): void
@@ -57,7 +64,7 @@ final class IsVehicleRegisteredQueryHandlerTest extends TestCase
         $this->expectException(FleetNotFoundException::class);
 
         $this->sut->handle(
-            new IsVehicleRegisteredQuery(new FleetId('missing'), new PlateNumber('AB-123-CD')),
+            new GetVehicleLocationQuery(new FleetId('missing'), new PlateNumber('AB-123-CD')),
         );
     }
 }

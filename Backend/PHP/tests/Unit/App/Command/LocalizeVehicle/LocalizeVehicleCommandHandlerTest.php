@@ -2,35 +2,37 @@
 
 declare(strict_types=1);
 
-namespace Fulll\Tests\Unit\App\Command\RegisterVehicle;
+namespace Fulll\Tests\Unit\App\Command\LocalizeVehicle;
 
-use Fulll\App\Command\RegisterVehicle\RegisterVehicleCommand;
-use Fulll\App\Command\RegisterVehicle\RegisterVehicleCommandHandler;
+use Fulll\App\Command\LocalizeVehicle\LocalizeVehicleCommand;
+use Fulll\App\Command\LocalizeVehicle\LocalizeVehicleCommandHandler;
 use Fulll\Domain\Aggregate\Fleet;
 use Fulll\Domain\Exception\FleetNotFoundException;
 use Fulll\Domain\Repository\FleetRepository;
 use Fulll\Domain\ValueObject\FleetId;
+use Fulll\Domain\ValueObject\Location;
 use Fulll\Domain\ValueObject\PlateNumber;
 use Fulll\Domain\ValueObject\UserId;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-final class RegisterVehicleCommandHandlerTest extends TestCase
+final class LocalizeVehicleCommandHandlerTest extends TestCase
 {
     private FleetRepository&MockObject $fleetRepository;
-    private RegisterVehicleCommandHandler $sut;
+    private LocalizeVehicleCommandHandler $sut;
 
-    protected function setUp(): void
+    public function setUp(): void
     {
         $this->fleetRepository = self::createMock(FleetRepository::class);
-        $this->sut = new RegisterVehicleCommandHandler($this->fleetRepository);
+        $this->sut = new LocalizeVehicleCommandHandler($this->fleetRepository);
     }
 
-    public function testRegistersVehicleIntoFleet(): void
+    public function testLocalizesVehicleIntoFleet(): void
     {
         $fleetId = new FleetId('fleet-1');
-        $fleet = new Fleet($fleetId, new UserId('user-1'));
         $plateNumber = new PlateNumber('AB-123-CD');
+        $fleet = new Fleet($fleetId, new UserId('user-1'));
+        $fleet->register($plateNumber);
 
         $this->fleetRepository
             ->method('find')
@@ -40,7 +42,9 @@ final class RegisterVehicleCommandHandlerTest extends TestCase
             ->method('save')
             ->with($fleet);
 
-        $this->sut->handle(new RegisterVehicleCommand($fleetId, $plateNumber));
+        $this->sut->handle(
+            new LocalizeVehicleCommand($fleetId, $plateNumber, new Location(48.85, 2.35)),
+        );
     }
 
     public function testFailsWhenFleetDoesNotExist(): void
@@ -55,7 +59,11 @@ final class RegisterVehicleCommandHandlerTest extends TestCase
         $this->expectException(FleetNotFoundException::class);
 
         $this->sut->handle(
-            new RegisterVehicleCommand(new FleetId('missing'), new PlateNumber('AB-123-CD')),
+            new LocalizeVehicleCommand(
+                new FleetId('missing'),
+                new PlateNumber('AB-123-CD'),
+                new Location(48.85, 2.35),
+            ),
         );
     }
 }
