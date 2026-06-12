@@ -26,6 +26,7 @@ final class FeatureContext implements Context
 {
     private readonly FleetRepository $fleetRepository;
     private ?FleetId $myFleetId = null;
+    private ?FleetId $otherFleetId = null;
     private ?PlateNumber $plateNumber = null;
     private ?\Throwable $caughtException = null;
     private int $sequence = 0;
@@ -41,10 +42,24 @@ final class FeatureContext implements Context
         $this->myFleetId = $this->createFleet();
     }
 
+    #[Given('the fleet of another user')]
+    public function theFleetOfAnotherUser(): void
+    {
+        $this->otherFleetId = $this->createFleet();
+    }
+
     #[Given('a vehicle')]
     public function aVehicle(): void
     {
         $this->plateNumber = new PlateNumber('AB-123-CD');
+    }
+
+    #[Given("this vehicle has been registered into the other user's fleet")]
+    public function thisVehicleHasBeenRegisteredIntoTheOtherUsersFleet(): void
+    {
+        new RegisterVehicleCommandHandler($this->fleetRepository)->handle(
+            new RegisterVehicleCommand($this->otherFleetId(), $this->plateNumber()),
+        );
     }
 
     #[Given('I have registered this vehicle into my fleet')]
@@ -105,6 +120,15 @@ final class FeatureContext implements Context
         }
 
         return $this->myFleetId;
+    }
+
+    private function otherFleetId(): FleetId
+    {
+        if ($this->otherFleetId === null) {
+            throw new \LogicException('No other fleet in the scenario context.');
+        }
+
+        return $this->otherFleetId;
     }
 
     private function plateNumber(): PlateNumber
