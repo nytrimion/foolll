@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fulll\Tests\Unit\Domain\Aggregate;
 
 use Fulll\Domain\Aggregate\Fleet;
+use Fulll\Domain\Exception\VehicleAlreadyRegisteredException;
 use Fulll\Domain\ValueObject\FleetId;
 use Fulll\Domain\ValueObject\PlateNumber;
 use Fulll\Domain\ValueObject\UserId;
@@ -27,5 +28,16 @@ final class FleetTest extends TestCase
         $fleet->register($plateNumber);
 
         self::assertTrue($fleet->hasVehicle($plateNumber));
+    }
+
+    public function testRejectsRegisteringSameVehicleTwice(): void
+    {
+        $fleet = new Fleet(new FleetId('fleet-1'), new UserId('user-1'));
+        $plateNumber = new PlateNumber('AB-123-CD');
+        $fleet->register($plateNumber);
+
+        $this->expectException(VehicleAlreadyRegisteredException::class);
+
+        $fleet->register($plateNumber);
     }
 }

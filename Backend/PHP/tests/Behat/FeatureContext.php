@@ -14,6 +14,7 @@ use Fulll\App\Command\RegisterVehicle\RegisterVehicleCommand;
 use Fulll\App\Command\RegisterVehicle\RegisterVehicleCommandHandler;
 use Fulll\App\Query\IsVehicleRegistered\IsVehicleRegisteredQuery;
 use Fulll\App\Query\IsVehicleRegistered\IsVehicleRegisteredQueryHandler;
+use Fulll\Domain\Exception\VehicleAlreadyRegisteredException;
 use Fulll\Domain\Repository\FleetRepository;
 use Fulll\Domain\ValueObject\FleetId;
 use Fulll\Domain\ValueObject\PlateNumber;
@@ -26,6 +27,7 @@ final class FeatureContext implements Context
     private readonly FleetRepository $fleetRepository;
     private ?FleetId $myFleetId = null;
     private ?PlateNumber $plateNumber = null;
+    private ?\Throwable $caughtException = null;
     private int $sequence = 0;
 
     public function __construct()
@@ -45,12 +47,27 @@ final class FeatureContext implements Context
         $this->plateNumber = new PlateNumber('AB-123-CD');
     }
 
+    #[Given('I have registered this vehicle into my fleet')]
     #[When('I register this vehicle into my fleet')]
     public function iRegisterThisVehicleIntoMyFleet(): void
     {
-        new RegisterVehicleCommandHandler($this->fleetRepository)->handle(
-            new RegisterVehicleCommand($this->myFleetId(), $this->plateNumber()),
-        );
+        $this->registerVehicle();
+    }
+
+    #[When('I try to register this vehicle into my fleet')]
+    public function iTryToRegisterThisVehicleIntoMyFleet(): void
+    {
+        try {
+            $this->registerVehicle();
+        } catch (\Throwable $exception) {
+            $this->caughtException = $exception;
+        }
+    }
+
+    #[Then('I should be informed this this vehicle has already been registered into my fleet')]
+    public function iShouldBeInformedThisVehicleHasAlreadyBeenRegistered(): void
+    {
+        Assert::assertInstanceOf(VehicleAlreadyRegisteredException::class, $this->caughtException);
     }
 
     #[Then('this vehicle should be part of my vehicle fleet')]
@@ -61,6 +78,13 @@ final class FeatureContext implements Context
         );
 
         Assert::assertTrue($isRegistered);
+    }
+
+    private function registerVehicle(): void
+    {
+        new RegisterVehicleCommandHandler($this->fleetRepository)->handle(
+            new RegisterVehicleCommand($this->myFleetId(), $this->plateNumber()),
+        );
     }
 
     private function createFleet(): FleetId
