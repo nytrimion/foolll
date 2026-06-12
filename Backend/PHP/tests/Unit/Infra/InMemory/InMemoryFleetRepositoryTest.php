@@ -14,7 +14,7 @@ final class InMemoryFleetRepositoryTest extends TestCase
 {
     private InMemoryFleetRepository $sut;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->sut = new InMemoryFleetRepository();
     }

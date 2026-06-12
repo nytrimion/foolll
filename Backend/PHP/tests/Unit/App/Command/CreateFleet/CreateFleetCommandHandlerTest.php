@@ -17,7 +17,7 @@ final class CreateFleetCommandHandlerTest extends TestCase
     private FleetRepository&MockObject $fleetRepository;
     private CreateFleetCommandHandler $sut;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->fleetRepository = self::createMock(FleetRepository::class);
         $this->sut = new CreateFleetCommandHandler($this->fleetRepository);

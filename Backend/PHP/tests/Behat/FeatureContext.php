@@ -10,13 +10,18 @@ use Behat\Step\Then;
 use Behat\Step\When;
 use Fulll\App\Command\CreateFleet\CreateFleetCommand;
 use Fulll\App\Command\CreateFleet\CreateFleetCommandHandler;
+use Fulll\App\Command\LocalizeVehicle\LocalizeVehicleCommand;
+use Fulll\App\Command\LocalizeVehicle\LocalizeVehicleCommandHandler;
 use Fulll\App\Command\RegisterVehicle\RegisterVehicleCommand;
 use Fulll\App\Command\RegisterVehicle\RegisterVehicleCommandHandler;
+use Fulll\App\Query\GetVehicleLocation\GetVehicleLocationQuery;
+use Fulll\App\Query\GetVehicleLocation\GetVehicleLocationQueryHandler;
 use Fulll\App\Query\IsVehicleRegistered\IsVehicleRegisteredQuery;
 use Fulll\App\Query\IsVehicleRegistered\IsVehicleRegisteredQueryHandler;
 use Fulll\Domain\Exception\VehicleAlreadyRegisteredException;
 use Fulll\Domain\Repository\FleetRepository;
 use Fulll\Domain\ValueObject\FleetId;
+use Fulll\Domain\ValueObject\Location;
 use Fulll\Domain\ValueObject\PlateNumber;
 use Fulll\Domain\ValueObject\UserId;
 use Fulll\Infra\InMemory\InMemoryFleetRepository;
@@ -28,6 +33,7 @@ final class FeatureContext implements Context
     private ?FleetId $myFleetId = null;
     private ?FleetId $otherFleetId = null;
     private ?PlateNumber $plateNumber = null;
+    private ?Location $location = null;
     private ?\Throwable $caughtException = null;
     private int $sequence = 0;
 
@@ -52,6 +58,12 @@ final class FeatureContext implements Context
     public function aVehicle(): void
     {
         $this->plateNumber = new PlateNumber('AB-123-CD');
+    }
+
+    #[Given('a location')]
+    public function aLocation(): void
+    {
+        $this->location = new Location(48.85, 2.35);
     }
 
     #[Given("this vehicle has been registered into the other user's fleet")]
@@ -93,6 +105,29 @@ final class FeatureContext implements Context
         );
 
         Assert::assertTrue($isRegistered);
+    }
+
+    #[When('I park my vehicle at this location')]
+    public function iParkMyVehicleAtThisLocation(): void
+    {
+        $this->parkVehicle();
+    }
+
+    #[Then('the known location of my vehicle should verify this location')]
+    public function theKnownLocationOfMyVehicleShouldVerifyThisLocation(): void
+    {
+        $location = new GetVehicleLocationQueryHandler($this->fleetRepository)->handle(
+            new GetVehicleLocationQuery($this->myFleetId(), $this->plateNumber()),
+        );
+
+        Assert::assertTrue($location?->equals($this->location()));
+    }
+
+    private function parkVehicle(): void
+    {
+        new LocalizeVehicleCommandHandler($this->fleetRepository)->handle(
+            new LocalizeVehicleCommand($this->myFleetId(), $this->plateNumber(), $this->location()),
+        );
     }
 
     private function registerVehicle(): void
@@ -138,5 +173,14 @@ final class FeatureContext implements Context
         }
 
         return $this->plateNumber;
+    }
+
+    private function location(): Location
+    {
+        if ($this->location === null) {
+            throw new \LogicException('No location in the scenario context.');
+        }
+
+        return $this->location;
     }
 }
