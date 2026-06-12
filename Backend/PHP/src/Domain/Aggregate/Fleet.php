@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fulll\Domain\Aggregate;
 
 use Fulll\Domain\Entity\Vehicle;
+use Fulll\Domain\Exception\VehicleAlreadyRegisteredException;
 use Fulll\Domain\ValueObject\FleetId;
 use Fulll\Domain\ValueObject\PlateNumber;
 use Fulll\Domain\ValueObject\UserId;
@@ -22,6 +23,10 @@ final class Fleet
 
     public function register(PlateNumber $plateNumber): void
     {
+        if ($this->hasVehicle($plateNumber)) {
+            throw VehicleAlreadyRegisteredException::in($this->id, $plateNumber);
+        }
+
         $this->vehicles[$plateNumber->value] = new Vehicle($plateNumber);
     }
 
