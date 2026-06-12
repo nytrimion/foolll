@@ -18,6 +18,7 @@ use Fulll\App\Query\GetVehicleLocation\GetVehicleLocationQuery;
 use Fulll\App\Query\GetVehicleLocation\GetVehicleLocationQueryHandler;
 use Fulll\App\Query\IsVehicleRegistered\IsVehicleRegisteredQuery;
 use Fulll\App\Query\IsVehicleRegistered\IsVehicleRegisteredQueryHandler;
+use Fulll\Domain\Exception\VehicleAlreadyParkedException;
 use Fulll\Domain\Exception\VehicleAlreadyRegisteredException;
 use Fulll\Domain\Repository\FleetRepository;
 use Fulll\Domain\ValueObject\FleetId;
@@ -107,10 +108,21 @@ final class FeatureContext implements Context
         Assert::assertTrue($isRegistered);
     }
 
+    #[Given('my vehicle has been parked into this location')]
     #[When('I park my vehicle at this location')]
     public function iParkMyVehicleAtThisLocation(): void
     {
         $this->parkVehicle();
+    }
+
+    #[When('I try to park my vehicle at this location')]
+    public function iTryToParkMyVehicleAtThisLocation(): void
+    {
+        try {
+            $this->parkVehicle();
+        } catch (\Throwable $exception) {
+            $this->caughtException = $exception;
+        }
     }
 
     #[Then('the known location of my vehicle should verify this location')]
@@ -121,6 +133,12 @@ final class FeatureContext implements Context
         );
 
         Assert::assertTrue($location?->equals($this->location()));
+    }
+
+    #[Then('I should be informed that my vehicle is already parked at this location')]
+    public function iShouldBeInformedMyVehicleIsAlreadyParked(): void
+    {
+        Assert::assertInstanceOf(VehicleAlreadyParkedException::class, $this->caughtException);
     }
 
     private function parkVehicle(): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fulll\Domain\Aggregate;
 
 use Fulll\Domain\Entity\Vehicle;
+use Fulll\Domain\Exception\VehicleAlreadyParkedException;
 use Fulll\Domain\Exception\VehicleAlreadyRegisteredException;
 use Fulll\Domain\Exception\VehicleNotRegisteredException;
 use Fulll\Domain\ValueObject\FleetId;
@@ -42,6 +43,7 @@ final class Fleet
 
     /**
      * @throws VehicleNotRegisteredException
+     * @throws VehicleAlreadyParkedException
      */
     public function localize(PlateNumber $plateNumber, Location $location): void
     {
